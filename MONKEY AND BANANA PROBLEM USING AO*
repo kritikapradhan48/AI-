@@ -1,0 +1,84 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cmath>
+
+using namespace std;
+
+// Define the Monkey and Banana problem state
+struct State {
+    int monkeyX;
+    int monkeyY;
+    int chairX;
+    int chairY;
+    int bananaX;
+    int bananaY;
+    int cost;
+
+    State(int mx, int my, int cx, int cy, int bx, int by, int c) :
+        monkeyX(mx), monkeyY(my), chairX(cx), chairY(cy), bananaX(bx), bananaY(by), cost(c) {}
+
+    // Define a heuristic function for estimating remaining cost
+    int heuristic() const {
+        return abs(monkeyX - bananaX) + abs(monkeyY - bananaY);
+    }
+};
+
+// Define a comparison function for the priority queue
+struct CompareState {
+    bool operator()(const State& s1, const State& s2) const {
+        return (s1.cost + s1.heuristic()) > (s2.cost + s2.heuristic());
+    }
+};
+
+// AO* search algorithm
+void AOStarSearch(int startX, int startY, int chairX, int chairY, int bananaX, int bananaY) {
+    priority_queue<State, vector<State>, CompareState> openList;
+    openList.push(State(startX, startY, chairX, chairY, bananaX, bananaY, 0));
+
+    while (!openList.empty()) {
+        State currentState = openList.top();
+        openList.pop();
+
+        if (currentState.monkeyX == currentState.bananaX && currentState.monkeyY == currentState.bananaY) {
+            cout << "Monkey reached the banana!" << endl;
+            cout << "Total cost: " << currentState.cost << endl;
+            return;
+        }
+
+        // Generate possible successor states
+        // Monkey can move in four directions: up, down, left, right
+        int dx[] = {-1, 1, 0, 0};
+        int dy[] = {0, 0, -1, 1};
+        for (int i = 0; i < 4; i++) {
+            int nextMonkeyX = currentState.monkeyX + dx[i];
+            int nextMonkeyY = currentState.monkeyY + dy[i];
+
+            // Check if the monkey can move to the new position
+            if (nextMonkeyX >= 0 && nextMonkeyX < 10 && nextMonkeyY >= 0 && nextMonkeyY < 10) {
+                int newCost = currentState.cost + 1; // Cost of moving to the new position
+
+                // Add the new state to the open list
+                openList.push(State(nextMonkeyX, nextMonkeyY, currentState.chairX, currentState.chairY, currentState.bananaX, currentState.bananaY, newCost));
+            }
+        }
+    }
+
+    cout << "No path to the banana found!" << endl;
+}
+
+int main() {
+    int startX, startY, chairX, chairY, bananaX, bananaY;
+
+    // Input initial positions of monkey, chair, and banana
+    cout << "Enter monkey's initial position (x y): ";
+    cin >> startX >> startY;
+    cout << "Enter chair's position (x y): ";
+    cin >> chairX >> chairY;
+    cout << "Enter banana's position (x y): ";
+    cin >> bananaX >> bananaY;
+
+    AOStarSearch(startX, startY, chairX, chairY, bananaX, bananaY);
+
+    return 0;
+}
