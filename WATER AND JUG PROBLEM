@@ -1,0 +1,100 @@
+#include <iostream>
+#include <vector>
+#include <set>
+
+using namespace std;
+
+struct State {
+    int jugA, jugB;
+    
+    State(int a, int b) : jugA(a), jugB(b) {}
+};
+
+bool isGoalState(const State& state, int target) {
+    return state.jugA == target || state.jugB == target;
+}
+
+bool isVisited(const State& state, const set<pair<int, int>>& visited) {
+    return visited.count({state.jugA, state.jugB});
+}
+
+void dfs(const State& currentState, int capacityA, int capacityB, int target, set<pair<int, int>>& visited) {
+    if (isGoalState(currentState, target)) {
+        cout << "Goal State Reached: (" << currentState.jugA << ", " << currentState.jugB << ")" << endl;
+        return;
+    }
+
+    visited.insert({currentState.jugA, currentState.jugB});
+
+    // Fill Jug A
+    if (currentState.jugA < capacityA) {
+        State newState(capacityA, currentState.jugB);
+        if (!isVisited(newState, visited)) {
+            cout << "Fill Jug A: (" << newState.jugA << ", " << newState.jugB << ")" << endl;
+            dfs(newState, capacityA, capacityB, target, visited);
+        }
+    }
+
+    // Fill Jug B
+    if (currentState.jugB < capacityB) {
+        State newState(currentState.jugA, capacityB);
+        if (!isVisited(newState, visited)) {
+            cout << "Fill Jug B: (" << newState.jugA << ", " << newState.jugB << ")" << endl;
+            dfs(newState, capacityA, capacityB, target, visited);
+        }
+    }
+
+    // Pour water from Jug A to Jug B
+    if (currentState.jugA > 0) {
+        int pourAmount = min(currentState.jugA, capacityB - currentState.jugB);
+        State newState(currentState.jugA - pourAmount, currentState.jugB + pourAmount);
+        if (!isVisited(newState, visited)) {
+            cout << "Pour from Jug A to Jug B: (" << newState.jugA << ", " << newState.jugB << ")" << endl;
+            dfs(newState, capacityA, capacityB, target, visited);
+        }
+    }
+
+    // Pour water from Jug B to Jug A
+    if (currentState.jugB > 0) {
+        int pourAmount = min(currentState.jugB, capacityA - currentState.jugA);
+        State newState(currentState.jugA + pourAmount, currentState.jugB - pourAmount);
+        if (!isVisited(newState, visited)) {
+            cout << "Pour from Jug B to Jug A: (" << newState.jugA << ", " << newState.jugB << ")" << endl;
+            dfs(newState, capacityA, capacityB, target, visited);
+        }
+    }
+
+    // Empty Jug A
+    if (currentState.jugA > 0) {
+        State newState(0, currentState.jugB);
+        if (!isVisited(newState, visited)) {
+            cout << "Empty Jug A: (" << newState.jugA << ", " << newState.jugB << ")" << endl;
+            dfs(newState, capacityA, capacityB, target, visited);
+        }
+    }
+
+    // Empty Jug B
+    if (currentState.jugB > 0) {
+        State newState(currentState.jugA, 0);
+        if (!isVisited(newState, visited)) {
+            cout << "Empty Jug B: (" << newState.jugA << ", " << newState.jugB << ")" << endl;
+            dfs(newState, capacityA, capacityB, target, visited);
+        }
+    }
+}
+
+int main() {
+    int capacityA, capacityB, target;
+    cout << "Enter the capacities of Jug A and Jug B: ";
+    cin >> capacityA >> capacityB;
+    cout << "Enter the target amount of water: ";
+    cin >> target;
+
+    set<pair<int, int>> visited;
+    State initialState(0, 0);
+
+    cout << "Starting from initial state (0, 0)" << endl;
+    dfs(initialState, capacityA, capacityB, target, visited);
+
+    return 0;
+}
